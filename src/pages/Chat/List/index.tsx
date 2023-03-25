@@ -58,9 +58,9 @@ export default () => {
           <Col span={12}>
             <div
               onClick={() => onCreateMessage()}
-              className="mt-20 flex items-center justify-center bg-white rounded-lg h-16 border-dashed border cursor-pointer shadow-md"
+              className="mt-20 flex items-center justify-center bg-white rounded-lg h-16 border-dashed border cursor-pointer shadow-md p-6"
             >
-              <Typography.Paragraph className="mb-0">
+              <Typography.Paragraph className="mb-0 text-center">
                 Empty messages. Please click here to start a new conversation.
               </Typography.Paragraph>
             </div>
