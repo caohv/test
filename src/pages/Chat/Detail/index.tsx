@@ -1,9 +1,10 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Avatar, Button, Col, Form, Input, Row } from 'antd'
-import { map } from 'lodash'
+import { isEmpty, map } from 'lodash'
 import { LOGO } from '@/assets'
 import { MainLayout, Typing } from '@/components'
-import { useSendMessageMutation } from '@/hooks'
+import { useGetDetailMessageQuery, useSendMessageMutation, useUpdateMessageMutation } from '@/hooks'
+import { Role } from '@/types'
 import { useEmotionCss } from '@ant-design/use-emotion-css'
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -14,44 +15,58 @@ export default () => {
   const [form] = Form.useForm()
   const className = useEmotionCss(() => ({
     flex: 1,
-    height: 'calc(100vh - 96px)',
+    height: 'calc(100vh - 128px)',
   }))
+
+  const { data: detailMessage } = useGetDetailMessageQuery()
+  const { mutate: onUpdateMessages } = useUpdateMessageMutation()
 
   const [messages, setMessages] = useState<
     {
-      role: 'user' | 'assistant'
+      role: Role
       content: string
     }[]
   >([])
 
+  useEffect(() => {
+    if (!isEmpty(detailMessage?.data?.messages)) {
+      setMessages(detailMessage?.data?.messages)
+    }
+  }, [detailMessage?.data?.messages])
+
   const onSuccess = useCallback(
     (rs: any) => {
       setMessages([...messages, ...map(rs?.choices, (choice: any) => ({ ...choice?.message }))])
+      onUpdateMessages({
+        messages: [...messages, ...map(rs?.choices, (choice: any) => ({ ...choice?.message }))],
+      })
     },
-    [messages]
+    [messages, onUpdateMessages]
   )
 
   const { mutate: onSendMessage, isLoading } = useSendMessageMutation(onSuccess)
 
   const onFinish = useCallback(
     (values: any) => {
-      setMessages([
-        ...messages,
-        {
-          role: 'user',
-          content: values.content,
-        },
-      ])
-      onSendMessage({
-        messages: [
+      if (values.content) {
+        setMessages([
           ...messages,
           {
-            role: 'user',
+            role: Role.User,
             content: values.content,
           },
-        ],
-      })
-      form.setFieldValue('content', '')
+        ])
+        onSendMessage({
+          messages: [
+            ...messages,
+            {
+              role: Role.User,
+              content: values.content,
+            },
+          ],
+        })
+        form.setFieldValue('content', '')
+      }
     },
     [form, messages, onSendMessage]
   )
@@ -80,9 +95,9 @@ export default () => {
             </Row>
           </Scrollbars>
         </div>
-        <div className="w-full z-50 bg-white">
+        <div className="w-full z-50">
           <Row justify="center">
-            <Col span={22} lg={16}>
+            <Col span={24} lg={16}>
               <Form.Item name="content" className="mb-0">
                 <Input
                   placeholder="Type your message..."

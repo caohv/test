@@ -1,9 +1,9 @@
-export * from './Style'
+export enum Role {
+  User = 'user',
+  Assistant = 'assistant',
+}
 
-export * from './Media'
-
-export * from './Layout'
-
-export * from './Section'
-
-export * from './Element'
+export type Message = {
+  role: Role
+  content: string
+}

@@ -1,20 +1,19 @@
 import { useMemo } from 'react'
 import { supabase } from '@/config'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Message } from '@/types'
+import { useMutation } from '@tanstack/react-query'
 import { useMatch } from '@umijs/max'
 
-export const useUpdateMessageMutation = () => {
-  const queryClient = useQueryClient()
-  const match = useMatch('/web-builder/:layoutId')
-  const layoutId = useMemo(() => match?.params?.layoutId, [match?.params?.layoutId])
+type Arg = {
+  messages?: Message[]
+}
 
-  const fetcher = async () => {
-    const rs = await supabase.from('messages').insert({
-      name: 'New Page',
-      layoutId,
-      sections: [],
-      elements: [],
-    })
+export const useUpdateMessageMutation = () => {
+  const match = useMatch('/chat/:id')
+  const id = useMemo(() => match?.params?.id, [match?.params?.id])
+
+  const fetcher = async (arg: Arg) => {
+    const rs = await supabase.from('messages').update({ messages: arg?.messages }).eq('id', id).select().single()
     if (rs.error) {
       throw rs.error
     }
@@ -24,7 +23,7 @@ export const useUpdateMessageMutation = () => {
   const fn = useMutation(['useUpdateMessageMutation'], {
     mutationFn: fetcher,
     onSuccess: () => {
-      queryClient.refetchQueries(['useGetListPageQuery'])
+      //
     },
     retry: false,
   })

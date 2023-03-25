@@ -23,9 +23,12 @@
   {
     path: '/chat',
     name: 'chat',
-    component: './Chat',
     hideInMenu: true,
     menuRender: false,
+    routes: [
+      { path: '/chat', component: './Chat/List' },
+      { path: '/chat/:id', component: './Chat/Detail' },
+    ],
   },
   {
     path: '*',
